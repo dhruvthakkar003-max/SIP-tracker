@@ -53,13 +53,14 @@
   </header>
 
   <!-- Tabs -->
-  <nav class="sticky top-[57px] z-30 bg-slate-900 border-b border-slate-700">
-    <div class="flex max-w-lg mx-auto text-sm font-medium">
-      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="flex-1 py-3 tab-active">Dashboard</button>
-      <button onclick="switchTab('funds')" id="tab-funds" class="flex-1 py-3 text-slate-400">Funds</button>
-      <button onclick="switchTab('sip')" id="tab-sip" class="flex-1 py-3 text-slate-400">SIP</button>
-      <button onclick="switchTab('deploy')" id="tab-deploy" class="flex-1 py-3 text-slate-400">Deploy</button>
-      <button onclick="switchTab('insights')" id="tab-insights" class="flex-1 py-3 text-slate-400">Insights</button>
+  <nav class="sticky top-[57px] z-30 bg-slate-900 border-b border-slate-700 overflow-x-auto">
+    <div class="flex max-w-lg mx-auto text-sm font-medium min-w-max">
+      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="flex-1 py-3 px-3 tab-active">Dashboard</button>
+      <button onclick="switchTab('funds')" id="tab-funds" class="flex-1 py-3 px-3 text-slate-400">Funds</button>
+      <button onclick="switchTab('sip')" id="tab-sip" class="flex-1 py-3 px-3 text-slate-400">SIP</button>
+      <button onclick="switchTab('deploy')" id="tab-deploy" class="flex-1 py-3 px-3 text-slate-400">Deploy</button>
+      <button onclick="switchTab('signals')" id="tab-signals" class="flex-1 py-3 px-3 text-slate-400">Signals</button>
+      <button onclick="switchTab('insights')" id="tab-insights" class="flex-1 py-3 px-3 text-slate-400">Insights</button>
     </div>
   </nav>
 
@@ -234,6 +235,73 @@
       </div>
     </section>
 
+    <!-- SIGNALS – Nifty 1-Day Buy-on-Dip -->
+    <section id="panel-signals" class="hidden space-y-4">
+      <div class="card p-4 border border-green-500/20">
+        <div class="flex justify-between items-center mb-2">
+          <div>
+            <h3 class="font-semibold text-green-400">Nifty 50 · 1-Day Buy on Dip</h3>
+            <p class="text-xs text-slate-400">Technical verdict for daily dip buying</p>
+          </div>
+          <button onclick="refreshSignals()" class="btn bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium">↻ Refresh</button>
+        </div>
+        <p class="text-xs text-slate-500" id="signals-updated">Tap Refresh to analyse</p>
+      </div>
+
+      <!-- Final Verdict -->
+      <div id="signals-verdict" class="card p-5 text-center">
+        <p class="text-xs text-slate-400 mb-1">FINAL VERDICT</p>
+        <p class="text-3xl font-bold text-slate-500" id="verdict-label">—</p>
+        <p class="text-sm text-slate-400 mt-2" id="verdict-sub">Refresh to get today’s signal</p>
+        <p class="text-xs text-slate-500 mt-3" id="verdict-score"></p>
+      </div>
+
+      <!-- Price snapshot -->
+      <div class="card p-4">
+        <h3 class="font-semibold mb-3 text-sm">Price Snapshot</h3>
+        <div class="grid grid-cols-2 gap-3 text-sm" id="signals-price-box">
+          <div><p class="text-xs text-slate-400">Last Close</p><p class="font-bold" id="sig-close">—</p></div>
+          <div><p class="text-xs text-slate-400">Change</p><p class="font-bold" id="sig-change">—</p></div>
+          <div><p class="text-xs text-slate-400">Day High / Low</p><p class="font-bold text-xs" id="sig-hl">—</p></div>
+          <div><p class="text-xs text-slate-400">vs 20-DMA</p><p class="font-bold" id="sig-vs-sma20">—</p></div>
+        </div>
+      </div>
+
+      <!-- Technical Alerts -->
+      <div class="card p-4">
+        <h3 class="font-semibold mb-3 text-sm">Technical Alerts</h3>
+        <div id="signals-alerts" class="space-y-2 text-sm">
+          <p class="text-slate-500">Refresh to load indicators</p>
+        </div>
+      </div>
+
+      <!-- Indicator values -->
+      <div class="card p-4">
+        <h3 class="font-semibold mb-3 text-sm">Indicators</h3>
+        <div class="grid grid-cols-2 gap-2 text-sm" id="signals-indicators">
+          <div class="bg-slate-800/60 rounded-lg p-2"><p class="text-xs text-slate-400">RSI (14)</p><p id="sig-rsi" class="font-semibold">—</p></div>
+          <div class="bg-slate-800/60 rounded-lg p-2"><p class="text-xs text-slate-400">SMA 20</p><p id="sig-sma20" class="font-semibold">—</p></div>
+          <div class="bg-slate-800/60 rounded-lg p-2"><p class="text-xs text-slate-400">SMA 50</p><p id="sig-sma50" class="font-semibold">—</p></div>
+          <div class="bg-slate-800/60 rounded-lg p-2"><p class="text-xs text-slate-400">vs Month High</p><p id="sig-vs-high" class="font-semibold">—</p></div>
+          <div class="bg-slate-800/60 rounded-lg p-2"><p class="text-xs text-slate-400">BB Position</p><p id="sig-bb" class="font-semibold">—</p></div>
+          <div class="bg-slate-800/60 rounded-lg p-2"><p class="text-xs text-slate-400">Stoch %K</p><p id="sig-stoch" class="font-semibold">—</p></div>
+        </div>
+      </div>
+
+      <!-- Strategy rules -->
+      <div class="card p-4">
+        <h3 class="font-semibold mb-2 text-sm">Strategy Rules (1-Day Buy on Dip)</h3>
+        <ul class="text-xs text-slate-400 space-y-1.5 list-disc pl-4">
+          <li><b class="text-slate-300">RSI &lt; 35</b> → oversold (strong dip signal)</li>
+          <li><b class="text-slate-300">Price below SMA20</b> → short-term weakness / dip</li>
+          <li><b class="text-slate-300">Near lower Bollinger Band</b> → stretched downside</li>
+          <li><b class="text-slate-300">Stochastic &lt; 25</b> → momentum oversold</li>
+          <li><b class="text-slate-300">≥ 2.5% below recent high</b> → meaningful pullback</li>
+          <li>Score ≥ 4 → <span class="text-green-400">STRONG BUY</span> · 3 → <span class="text-green-300">BUY</span> · 2 → <span class="text-amber-400">WATCH</span> · &lt;2 → <span class="text-slate-400">AVOID</span></li>
+        </ul>
+      </div>
+    </section>
+
     <!-- INSIGHTS -->
     <section id="panel-insights" class="hidden space-y-4">
       <div class="card p-4">
@@ -363,17 +431,20 @@
       return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
     }
     function switchTab(name) {
-      ['dashboard','funds','sip','deploy','insights'].forEach(t => {
+      ['dashboard','funds','sip','deploy','signals','insights'].forEach(t => {
         document.getElementById('panel-' + t).classList.toggle('hidden', t !== name);
         const tab = document.getElementById('tab-' + t);
-        tab.classList.toggle('tab-active', t === name);
-        tab.classList.toggle('text-slate-400', t !== name);
+        if (tab) {
+          tab.classList.toggle('tab-active', t === name);
+          tab.classList.toggle('text-slate-400', t !== name);
+        }
       });
       if (name === 'insights') renderInsights();
       if (name === 'deploy') renderDeploy();
       if (name === 'dashboard') renderDashboard();
       if (name === 'funds') renderFunds();
       if (name === 'sip') renderSip();
+      if (name === 'signals') renderSignals();
     }
 
     // Shared fetch helper (must be above searchFunds / fetchNav)
@@ -855,6 +926,227 @@
     function niftyDropPct() {
       if (!state.nifty.monthHigh) return 0;
       return ((state.nifty.current - state.nifty.monthHigh) / state.nifty.monthHigh) * 100;
+    }
+
+    // ========== NIFTY 1-DAY BUY-ON-DIP SIGNALS ==========
+    let lastSignals = null;
+
+    function sma(arr, period) {
+      if (arr.length < period) return null;
+      const slice = arr.slice(-period);
+      return slice.reduce((a, b) => a + b, 0) / period;
+    }
+
+    function rsi(closes, period = 14) {
+      if (closes.length < period + 1) return null;
+      let gains = 0, losses = 0;
+      for (let i = closes.length - period; i < closes.length; i++) {
+        const diff = closes[i] - closes[i - 1];
+        if (diff >= 0) gains += diff;
+        else losses -= diff;
+      }
+      if (losses === 0) return 100;
+      const rs = (gains / period) / (losses / period);
+      return 100 - (100 / (1 + rs));
+    }
+
+    function bollinger(closes, period = 20, mult = 2) {
+      if (closes.length < period) return null;
+      const slice = closes.slice(-period);
+      const mean = slice.reduce((a, b) => a + b, 0) / period;
+      const variance = slice.reduce((a, b) => a + (b - mean) ** 2, 0) / period;
+      const std = Math.sqrt(variance);
+      return { mid: mean, upper: mean + mult * std, lower: mean - mult * std };
+    }
+
+    function stochastic(highs, lows, closes, period = 14) {
+      if (closes.length < period) return null;
+      const h = Math.max(...highs.slice(-period));
+      const l = Math.min(...lows.slice(-period));
+      if (h === l) return 50;
+      return ((closes[closes.length - 1] - l) / (h - l)) * 100;
+    }
+
+    async function refreshSignals() {
+      toast('Fetching Nifty data & computing signals…');
+      const updatedEl = document.getElementById('signals-updated');
+      updatedEl.textContent = 'Loading…';
+
+      try {
+        // Yahoo Finance daily bars via CORS proxy
+        const url = 'https://proxy.cors.dev/https://query1.finance.yahoo.com/v8/finance/chart/%5ENSEI?interval=1d&range=3mo';
+        const res = await fetch(url, { mode: 'cors' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const json = await res.json();
+        const result = json?.chart?.result?.[0];
+        if (!result) throw new Error('No chart data');
+
+        const meta = result.meta || {};
+        const q = result.indicators?.quote?.[0];
+        const ts = result.timestamp || [];
+        if (!q || !q.close) throw new Error('Incomplete OHLC');
+
+        // Build clean arrays (skip nulls)
+        const closes = [], highs = [], lows = [], opens = [];
+        for (let i = 0; i < q.close.length; i++) {
+          if (q.close[i] != null) {
+            closes.push(q.close[i]);
+            highs.push(q.high[i] ?? q.close[i]);
+            lows.push(q.low[i] ?? q.close[i]);
+            opens.push(q.open[i] ?? q.close[i]);
+          }
+        }
+        if (closes.length < 30) throw new Error('Not enough history');
+
+        const last = closes[closes.length - 1];
+        const prev = closes[closes.length - 2];
+        const changePct = prev ? ((last - prev) / prev) * 100 : 0;
+        const dayHigh = highs[highs.length - 1];
+        const dayLow = lows[lows.length - 1];
+
+        const sma20 = sma(closes, 20);
+        const sma50 = sma(closes, 50);
+        const rsi14 = rsi(closes, 14);
+        const bb = bollinger(closes, 20, 2);
+        const stoch = stochastic(highs, lows, closes, 14);
+
+        // Recent high (approx 20 trading days ~ 1 month)
+        const recentHigh = Math.max(...closes.slice(-22));
+        const vsHighPct = ((last - recentHigh) / recentHigh) * 100;
+
+        // Also sync to main Nifty state
+        state.nifty.current = last;
+        if (!state.nifty.monthHigh || last > state.nifty.monthHigh) state.nifty.monthHigh = Math.max(state.nifty.monthHigh || 0, recentHigh);
+        state.nifty.lastUpdated = new Date().toISOString();
+        save();
+
+        // ---- Scoring for 1-day buy-on-dip ----
+        let score = 0;
+        const alerts = [];
+
+        // 1. RSI oversold
+        if (rsi14 != null) {
+          if (rsi14 < 30) { score += 2; alerts.push({ type: 'buy', text: `RSI ${rsi14.toFixed(1)} — strongly oversold (<30)` }); }
+          else if (rsi14 < 35) { score += 1; alerts.push({ type: 'buy', text: `RSI ${rsi14.toFixed(1)} — oversold zone (<35)` }); }
+          else if (rsi14 > 65) { alerts.push({ type: 'warn', text: `RSI ${rsi14.toFixed(1)} — elevated, less ideal for dip buy` }); }
+          else { alerts.push({ type: 'ok', text: `RSI ${rsi14.toFixed(1)} — neutral` }); }
+        }
+
+        // 2. Price vs SMA20
+        if (sma20) {
+          const vs20 = ((last - sma20) / sma20) * 100;
+          if (vs20 < -1.5) { score += 1; alerts.push({ type: 'buy', text: `Price ${vs20.toFixed(2)}% below SMA20 — short-term dip` }); }
+          else if (vs20 < 0) { score += 0.5; alerts.push({ type: 'ok', text: `Price slightly below SMA20 (${vs20.toFixed(2)}%)` }); }
+          else { alerts.push({ type: 'ok', text: `Price above SMA20 (+${vs20.toFixed(2)}%)` }); }
+        }
+
+        // 3. Bollinger Band position
+        if (bb) {
+          const range = bb.upper - bb.lower;
+          const pos = range > 0 ? (last - bb.lower) / range : 0.5; // 0 = lower, 1 = upper
+          if (pos < 0.15) { score += 1.5; alerts.push({ type: 'buy', text: `Near lower Bollinger Band — stretched downside` }); }
+          else if (pos < 0.35) { score += 0.5; alerts.push({ type: 'ok', text: `In lower half of Bollinger Bands` }); }
+          else if (pos > 0.85) { alerts.push({ type: 'warn', text: `Near upper Bollinger Band — extended upside` }); }
+          else { alerts.push({ type: 'ok', text: `Mid Bollinger Band range` }); }
+        }
+
+        // 4. Stochastic
+        if (stoch != null) {
+          if (stoch < 20) { score += 1.5; alerts.push({ type: 'buy', text: `Stochastic %K ${stoch.toFixed(1)} — oversold (<20)` }); }
+          else if (stoch < 25) { score += 1; alerts.push({ type: 'buy', text: `Stochastic %K ${stoch.toFixed(1)} — weak momentum` }); }
+          else if (stoch > 80) { alerts.push({ type: 'warn', text: `Stochastic %K ${stoch.toFixed(1)} — overbought` }); }
+          else { alerts.push({ type: 'ok', text: `Stochastic %K ${stoch.toFixed(1)} — neutral` }); }
+        }
+
+        // 5. Distance from recent high
+        if (vsHighPct <= -5) { score += 1.5; alerts.push({ type: 'buy', text: `${vsHighPct.toFixed(2)}% below ~1-month high — meaningful pullback` }); }
+        else if (vsHighPct <= -2.5) { score += 1; alerts.push({ type: 'buy', text: `${vsHighPct.toFixed(2)}% below recent high — dip zone (2.5% rule)` }); }
+        else if (vsHighPct <= -1) { score += 0.5; alerts.push({ type: 'ok', text: `Mild pullback ${vsHighPct.toFixed(2)}% from high` }); }
+        else { alerts.push({ type: 'ok', text: `Near recent highs (${vsHighPct.toFixed(2)}%)` }); }
+
+        // 6. Green/red day context
+        if (changePct <= -1) { score += 0.5; alerts.push({ type: 'buy', text: `Down day ${changePct.toFixed(2)}% — adds to dip context` }); }
+        else if (changePct >= 1.2) { alerts.push({ type: 'warn', text: `Strong up day +${changePct.toFixed(2)}% — wait for pullback` }); }
+
+        // Verdict
+        let verdict, sub, color;
+        if (score >= 4) {
+          verdict = 'STRONG BUY';
+          sub = 'Multiple oversold signals. Favourable for 1-day dip buying.';
+          color = 'text-green-400';
+        } else if (score >= 3) {
+          verdict = 'BUY';
+          sub = 'Enough dip signals to consider a buy tranche today.';
+          color = 'text-green-300';
+        } else if (score >= 2) {
+          verdict = 'WATCH';
+          sub = 'Some weakness, but not a clear multi-signal dip yet. Wait or buy small.';
+          color = 'text-amber-400';
+        } else {
+          verdict = 'AVOID';
+          sub = 'No meaningful dip setup. Better to wait for deeper pullback.';
+          color = 'text-slate-400';
+        }
+
+        lastSignals = {
+          last, changePct, dayHigh, dayLow, sma20, sma50, rsi14, bb, stoch,
+          vsHighPct, recentHigh, score, verdict, sub, alerts, at: new Date().toISOString()
+        };
+
+        // Render
+        document.getElementById('verdict-label').textContent = verdict;
+        document.getElementById('verdict-label').className = 'text-3xl font-bold ' + color;
+        document.getElementById('verdict-sub').textContent = sub;
+        document.getElementById('verdict-score').textContent = `Score: ${score.toFixed(1)} / 8+ · based on RSI, SMA, BB, Stoch, pullback depth`;
+
+        document.getElementById('sig-close').textContent = last.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        const chEl = document.getElementById('sig-change');
+        chEl.textContent = (changePct >= 0 ? '+' : '') + changePct.toFixed(2) + '%';
+        chEl.className = 'font-bold ' + (changePct >= 0 ? 'text-green-400' : 'text-red-400');
+        document.getElementById('sig-hl').textContent = `${dayHigh.toFixed(0)} / ${dayLow.toFixed(0)}`;
+        document.getElementById('sig-vs-sma20').textContent = sma20
+          ? (((last - sma20) / sma20) * 100).toFixed(2) + '%'
+          : '—';
+
+        document.getElementById('sig-rsi').textContent = rsi14 != null ? rsi14.toFixed(1) : '—';
+        document.getElementById('sig-rsi').className = 'font-semibold ' + (rsi14 < 35 ? 'text-green-400' : rsi14 > 65 ? 'text-amber-400' : '');
+        document.getElementById('sig-sma20').textContent = sma20 ? sma20.toFixed(1) : '—';
+        document.getElementById('sig-sma50').textContent = sma50 ? sma50.toFixed(1) : '—';
+        document.getElementById('sig-vs-high').textContent = vsHighPct.toFixed(2) + '%';
+        document.getElementById('sig-vs-high').className = 'font-semibold ' + (vsHighPct <= -2.5 ? 'text-green-400' : '');
+        if (bb) {
+          const pos = ((last - bb.lower) / (bb.upper - bb.lower)) * 100;
+          document.getElementById('sig-bb').textContent = pos.toFixed(0) + '% from lower';
+        } else document.getElementById('sig-bb').textContent = '—';
+        document.getElementById('sig-stoch').textContent = stoch != null ? stoch.toFixed(1) : '—';
+        document.getElementById('sig-stoch').className = 'font-semibold ' + (stoch < 25 ? 'text-green-400' : stoch > 80 ? 'text-amber-400' : '');
+
+        const alertsBox = document.getElementById('signals-alerts');
+        alertsBox.innerHTML = alerts.map(a => {
+          const icon = a.type === 'buy' ? '🟢' : a.type === 'warn' ? '🟡' : '⚪';
+          const cls = a.type === 'buy' ? 'text-green-300' : a.type === 'warn' ? 'text-amber-300' : 'text-slate-400';
+          return `<div class="flex gap-2 ${cls}"><span>${icon}</span><span>${a.text}</span></div>`;
+        }).join('');
+
+        updatedEl.textContent = 'Updated ' + new Date().toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        toast(`Verdict: ${verdict}`);
+        renderDashboard(); // sync Nifty price on dashboard
+      } catch (e) {
+        console.warn(e);
+        updatedEl.textContent = 'Fetch failed';
+        document.getElementById('verdict-label').textContent = 'ERROR';
+        document.getElementById('verdict-label').className = 'text-3xl font-bold text-red-400';
+        document.getElementById('verdict-sub').textContent = (e.message || 'Could not load data') + ' — try again in a minute';
+        toast('Signals fetch failed: ' + (e.message || 'network').slice(0, 50));
+      }
+    }
+
+    function renderSignals() {
+      if (lastSignals) {
+        // already have data from last refresh — leave as is
+        return;
+      }
+      // empty state already in HTML
     }
 
     // ========== SIP ==========
